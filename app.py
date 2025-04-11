@@ -1,58 +1,84 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file
-from services.gemini_testcase_generator import generate_test_case
-from services.selenium_runner import run_test_case
-from services.report_generator import generate_pdf_report
-from services.result_parser import parse_results
-from utils.url_validator import validate_url
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 import os
+import time
 import json
 
+from services.test_generator import generate_testcase
+from services.test_runner import run_generated_testcase
+from services.result_parser import parse_test_output
+from utils.url_validator import validate_url
+from services.report_generator import generate_pdf_report
+
 app = Flask(__name__)
+app.secret_key = "jasw-secret"
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+os.makedirs("results", exist_ok=True)
 
-@app.route('/generate-testcase', methods=['POST'])
-def generate_testcase():
-    url = request.form['url']
-    if not validate_url(url):
-        return jsonify({'error': 'Invalid URL'}), 400
+# Store session-wise data temporarily
+session_data = {}
 
-    generated_code = generate_test_case(url).strip()
-    # Remove '''python and '''
-    if generated_code.startswith("```python"):
-        generated_code = generated_code.replace("```python", "").replace("```", "").strip()
+@app.route("/", methods=["GET"])
+def home():
+    return render_template("index.html", testcase_code="", show_result=False)
 
-    return jsonify({'code': generated_code})
+@app.route("/generate-testcase", methods=["POST"])
+def generate_testcase_route():
+    url = request.form.get("url")
 
-@app.route('/run-testcase', methods=['POST'])
-def run_testcase():
-    test_code = request.form['testCode']
-    url = request.form['url']
-    
-    result_data = run_test_case(test_code, url)
-    parsed_result = parse_results(result_data)
+    is_valid, msg = validate_url(url)
+    if not is_valid:
+        return render_template("index.html", error=msg, show_result=False)
 
-    with open("results/latest_result.json", "w") as f:
-        json.dump(parsed_result, f)
+    testcase_code = generate_testcase(url).strip("`python").strip("`").strip()
+    session_data["url"] = url
+    session_data["testcase_code"] = testcase_code
 
-    generate_pdf_report(parsed_result)
+    return render_template("index.html", testcase_code=testcase_code, show_result=True)
 
-    return redirect(url_for('dashboard'))
+@app.route("/start-test", methods=["POST"])
+def start_test():
+    code = request.form.get("testcase_code")
+    url = session_data.get("url", "Unknown URL")
+    start_time = time.time()
 
-@app.route('/dashboard')
+    raw_output, script_filename = run_generated_testcase(code)
+    end_time = time.time()
+
+    parsed_result = parse_test_output(raw_output, start_time, end_time, url)
+    result_filename = f"{parsed_result['filename']}.json"
+    json_path = os.path.join("results", result_filename)
+
+    with open(json_path, "w") as f:
+        json.dump(parsed_result, f, indent=2)
+
+    pdf_path = os.path.join("results", f"{parsed_result['filename']}.pdf")
+    generate_pdf_report(parsed_result, pdf_path)
+
+    session_data["latest_result"] = parsed_result
+    return redirect(url_for("dashboard", result_file=result_filename))
+
+@app.route("/dashboard")
 def dashboard():
-    if not os.path.exists("results/latest_result.json"):
-        return "No results found. Please run a test case first."
-    
-    with open("results/latest_result.json", "r") as f:
-        result_data = json.load(f)
-    return render_template("dashboard.html", result=result_data)
+    result_file = request.args.get("result_file")
+    filepath = os.path.join("results", result_file)
 
-@app.route('/download-report')
-def download_report():
-    return send_file("results/report.pdf", as_attachment=True)
+    if not os.path.exists(filepath):
+        return "Result not found", 404
 
-if __name__ == '__main__':
+    with open(filepath, "r") as f:
+        result = json.load(f)
+
+    return render_template("dashboard.html", result=result)
+
+@app.route("/download-report/<filename>")
+def download_report(filename):
+    path = os.path.join("results", filename)
+    if not os.path.exists(path):
+        return "File not found", 404
+    return open(path, "rb").read(), 200, {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": f"attachment; filename={filename}"
+    }
+
+if __name__ == "__main__":
     app.run(debug=True)

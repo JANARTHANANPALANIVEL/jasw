@@ -2,183 +2,98 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>JASW | AI-Powered Web Testing</title>
+  <title>JASW - AI Test Generator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      margin: 0;
-      padding: 0;
+      background: #f8f9fa;
+      padding: 30px;
     }
-    
     .container {
-      max-width: 960px;
-      margin: 50px auto;
-      padding: 20px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      background: white;
+      border-radius: 10px;
+      padding: 25px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      max-width: 800px;
+      margin: auto;
     }
-    
-    h1 {
+    h2 {
       text-align: center;
-      margin-bottom: 30px;
-      color: #333;
+      margin-bottom: 25px;
     }
-    
-    form label {
-      display: block;
-      margin-top: 20px;
+    label {
       font-weight: bold;
     }
-    
-    input[type="text"],
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
     textarea {
       width: 100%;
+      height: 300px;
       padding: 10px;
-      margin-top: 8px;
+      font-family: monospace;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 6px;
     }
-    
-    button {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 12px 20px;
-      background-color: #2196F3;
-      color: white;
+    .btn {
+      padding: 10px 20px;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
+      margin-right: 10px;
     }
-    
-    button:hover {
-      background-color: #1976D2;
-    }
-    
-    .progress-bar {
-      width: 100%;
-      height: 10px;
-      background: #ccc;
-      border-radius: 5px;
-      margin-top: 15px;
-      overflow: hidden;
-      position: relative;
-    }
-    
-    .progress-bar::before {
-      content: '';
-      position: absolute;
-      width: 0%;
-      height: 100%;
-      background: #4CAF50;
-      animation: loading 2s linear infinite;
-    }
-    
-    @keyframes loading {
-      0%   { width: 0%; }
-      50%  { width: 100%; }
-      100% { width: 0%; }
-    }
-    
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    
-    table, th, td {
-      border: 1px solid #ddd;
-    }
-    
-    th, td {
-      padding: 10px;
-      text-align: left;
-    }
-    
-    th {
-      background: #2196F3;
+    .btn-generate {
+      background-color: #007bff;
       color: white;
     }
-    
-    .download-btn {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 12px 20px;
-      background: #4CAF50;
+    .btn-start {
+      background-color: #28a745;
       color: white;
-      border-radius: 5px;
-      text-decoration: none;
     }
-    
-    .download-btn:hover {
-      background: #388E3C;
+    .error {
+      color: red;
+      font-weight: bold;
+      margin-bottom: 15px;
     }
-    
+    .loading {
+      font-style: italic;
+      color: #888;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>JASW: AI Web Testing Tool</h1>
-    <form id="testForm">
+    <h2>JASW: AI-Powered Selenium Test Case Generator</h2>
+
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/generate-testcase" onsubmit="showLoading()">
       <label for="url">Enter Website URL:</label>
-      <input type="text" id="url" name="url" required placeholder="https://example.com">
-
-      <button type="submit" id="generateBtn">Generate Test Case</button>
-      <div class="progress-bar" id="progressBar" style="display:none;"></div>
-
-      <label for="testCode">Generated Test Case (Editable):</label>
-      <textarea id="testCode" name="testCode" rows="20" placeholder="Test case will appear here..."></textarea>
-
-      <button type="button" id="startBtn">Start Testing</button>
+      <input type="text" name="url" placeholder="https://example.com" required>
+      <button class="btn btn-generate" type="submit">Generate Test Case</button>
+      <span id="loader" class="loading" style="display:none;">Generating test case...</span>
     </form>
+
+    {% if show_result %}
+    <form method="POST" action="/start-test">
+      <label for="testcase_code">Generated Test Case:</label>
+      <textarea name="testcase_code">{{ testcase_code }}</textarea>
+      <button class="btn btn-start" type="submit">Start Test</button>
+    </form>
+    {% endif %}
   </div>
 
   <script>
-    document.getElementById("testForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const url = document.getElementById("url").value;
-      const generateBtn = document.getElementById("generateBtn");
-      const progressBar = document.getElementById("progressBar");
-      const testCode = document.getElementById("testCode");
-    
-      progressBar.style.display = "block";
-      generateBtn.disabled = true;
-    
-      fetch("/generate-testcase", {
-        method: "POST",
-        body: new URLSearchParams({ url }),
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
-        }
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.code) {
-            testCode.value = data.code;
-          } else {
-            alert(data.error || "Something went wrong!");
-          }
-          progressBar.style.display = "none";
-          generateBtn.disabled = false;
-        });
-    });
-    
-    document.getElementById("startBtn").addEventListener("click", function () {
-      const url = document.getElementById("url").value;
-      const testCode = document.getElementById("testCode").value;
-    
-      fetch("/run-testcase", {
-        method: "POST",
-        body: new URLSearchParams({ url, testCode }),
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
-        }
-      }).then(() => {
-        window.location.href = "/dashboard";
-      });
-    });
-    
+    function showLoading() {
+      document.getElementById("loader").style.display = "inline";
+    }
   </script>
 </body>
 </html>
