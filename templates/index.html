@@ -1,99 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>JASW - AI Test Generator</title>
+  <meta charset="UTF-8" />
+  <title>JASW - AI Test Case Generator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f8f9fa;
-      padding: 30px;
+      margin: 40px;
+      background: #f4f4f4;
     }
-    .container {
-      background: white;
-      border-radius: 10px;
-      padding: 25px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      max-width: 800px;
-      margin: auto;
+    h1 {
+      color: #333;
     }
-    h2 {
-      text-align: center;
-      margin-bottom: 25px;
-    }
-    label {
-      font-weight: bold;
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+    form {
+      margin-bottom: 20px;
     }
     textarea {
       width: 100%;
       height: 300px;
       padding: 10px;
       font-family: monospace;
+      border-radius: 8px;
       border: 1px solid #ccc;
-      border-radius: 6px;
     }
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-right: 10px;
-    }
-    .btn-generate {
+    button {
       background-color: #007bff;
       color: white;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
-    .btn-start {
-      background-color: #28a745;
-      color: white;
+    button:hover {
+      background-color: #0056b3;
     }
     .error {
       color: red;
-      font-weight: bold;
-      margin-bottom: 15px;
+      margin-top: 10px;
     }
-    .loading {
-      font-style: italic;
-      color: #888;
+    #status {
+      margin-top: 15px;
+      font-weight: bold;
+      color: green;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>JASW: AI-Powered Selenium Test Case Generator</h2>
+  <h1>JASW - AI Powered Web Test Automation</h1>
 
-    {% if error %}
+  {% if error %}
     <div class="error">{{ error }}</div>
-    {% endif %}
+  {% endif %}
 
-    <form method="POST" action="/generate-testcase" onsubmit="showLoading()">
-      <label for="url">Enter Website URL:</label>
-      <input type="text" name="url" placeholder="https://example.com" required>
-      <button class="btn btn-generate" type="submit">Generate Test Case</button>
-      <span id="loader" class="loading" style="display:none;">Generating test case...</span>
-    </form>
+  <form method="POST" action="/generate-testcase">
+    <input type="text" name="url" placeholder="Enter website URL" required style="padding: 8px; width: 50%;">
+    <button type="submit">Generate Test Case</button>
+  </form>
 
-    {% if show_result %}
-    <form method="POST" action="/start-test">
-      <label for="testcase_code">Generated Test Case:</label>
-      <textarea name="testcase_code">{{ testcase_code }}</textarea>
-      <button class="btn btn-start" type="submit">Start Test</button>
+  {% if show_result %}
+    <form id="startForm">
+      <h3>Generated Test Case:</h3>
+      <textarea name="testcase_code" id="testcase_code">{{ testcase_code }}</textarea><br><br>
+      <button type="submit">Start</button>
     </form>
-    {% endif %}
-  </div>
+    <div id="status"></div>
+  {% endif %}
 
   <script>
-    function showLoading() {
-      document.getElementById("loader").style.display = "inline";
-    }
+    document.addEventListener("DOMContentLoaded", function () {
+      const startForm = document.getElementById("startForm");
+      const statusDiv = document.getElementById("status");
+
+      if (startForm) {
+        startForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          statusDiv.innerText = "Running test, please wait...";
+
+          const testcaseCode = document.getElementById("testcase_code").value;
+
+          const response = await fetch("/start-test", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              testcase_code: testcaseCode,
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            statusDiv.innerText = "Test completed. Redirecting to dashboard...";
+            window.location.href = `/dashboard?result_file=${data.result_file}`;
+          } else {
+            statusDiv.innerText = "An error occurred while running the test.";
+          }
+        });
+      }
+    });
   </script>
 </body>
 </html>

@@ -55,7 +55,9 @@ def start_test():
     generate_pdf_report(parsed_result, pdf_path)
 
     session_data["latest_result"] = parsed_result
-    return redirect(url_for("dashboard", result_file=result_filename))
+
+    # 🔥 Return filename as JSON (used in index.html JavaScript to redirect)
+    return jsonify({"result_file": result_filename})
 
 @app.route("/dashboard")
 def dashboard():
