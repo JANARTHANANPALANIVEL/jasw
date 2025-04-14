@@ -69,8 +69,8 @@
         });
 
         const data = await response.json();
-        if (data.result_file) {
-          window.location.href = `/dashboard?result_file=${data.result_file}`;
+        if (data.redirect_url) {
+          window.location.href = data.redirect_url;
         } else {
           loader.textContent = "Something went wrong.";
         }

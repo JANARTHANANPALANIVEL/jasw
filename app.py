@@ -76,7 +76,13 @@ def dashboard():
     with open(filepath, "r") as f:
         result = json.load(f)
 
-    return render_template("dashboard.html", result=result)
+    # Calculate pass, fail, and error counts
+    passed = sum(1 for step in result['steps'] if step['status'] == 'pass')
+    failed = sum(1 for step in result['steps'] if step['status'] == 'fail')
+    errors = sum(1 for step in result['steps'] if step['status'] == 'error')
+
+    # Add the pass, fail, and error counts to the result object
+    return render_template("dashboard.html", result=result, passed=passed, failed=failed, errors=errors)
 
 @app.route("/download-report/<filename>")
 def download_report(filename):

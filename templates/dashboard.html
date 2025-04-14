@@ -47,6 +47,11 @@
             border-radius: 6px;
             margin-top: 20px;
         }
+        .chart-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 30px auto;
+        }
     </style>
 </head>
 <body>
@@ -61,6 +66,11 @@
         <p><strong>Summary:</strong> {{ result.summary }}</p>
     </div>
 
+    <!-- Chart Section -->
+    <div class="chart-container">
+        <canvas id="testResultsChart"></canvas>
+    </div>
+
     <table>
         <thead>
             <tr>
@@ -72,15 +82,53 @@
         <tbody>
             {% for step in result.steps %}
             <tr>
-                <td>{{ step.step }}</td>
+                <td>{{ loop.index }}</td>
                 <td>{{ step.status }}</td>
-                <td>{{ step.message }}</td>
+                <td>{{ step.description }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
     <a class="btn-download" href="/download-report/{{ result.filename }}.pdf">Download PDF Report</a>
+
+    <!-- Chart.js Script -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Extract pass, fail, and error counts from the result data
+        const passed = {{ result.passed }};
+        const failed = {{ result.failed }};
+        const errors = {{ result.errors }};
+
+        // Create the chart
+        const ctx = document.getElementById('testResultsChart').getContext('2d');
+        const testResultsChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Passed', 'Failed', 'Errors'],
+                datasets: [{
+                    data: [passed, failed, errors],
+                    backgroundColor: ['#28a745', '#dc3545', '#ffc107'],
+                    hoverBackgroundColor: ['#218838', '#c82333', '#e0a800']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw + ' steps';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 
 </body>
 </html>
