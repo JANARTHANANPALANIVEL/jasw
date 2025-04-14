@@ -2,102 +2,80 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>JASW - AI Test Case Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Test Case Generator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 40px;
-      background: #f4f4f4;
-    }
-    h1 {
-      color: #333;
-    }
-    form {
-      margin-bottom: 20px;
+      margin: 30px;
     }
     textarea {
       width: 100%;
       height: 300px;
-      padding: 10px;
-      font-family: monospace;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      margin-top: 10px;
     }
-    button {
-      background-color: #007bff;
-      color: white;
-      padding: 10px 18px;
-      border: none;
-      border-radius: 5px;
+    .btn {
+      padding: 10px 20px;
+      margin: 10px 5px;
+      font-size: 16px;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #0056b3;
+    .loader {
+      display: none;
+      font-weight: bold;
+      color: green;
     }
     .error {
       color: red;
-      margin-top: 10px;
-    }
-    #status {
-      margin-top: 15px;
-      font-weight: bold;
-      color: green;
     }
   </style>
 </head>
 <body>
-  <h1>JASW - AI Powered Web Test Automation</h1>
 
-  {% if error %}
-    <div class="error">{{ error }}</div>
-  {% endif %}
+  <h1>AI-Based Test Case Generator</h1>
 
-  <form method="POST" action="/generate-testcase">
-    <input type="text" name="url" placeholder="Enter website URL" required style="padding: 8px; width: 50%;">
-    <button type="submit">Generate Test Case</button>
+  <form action="/generate-testcase" method="POST">
+    <label for="url">Enter Website URL:</label>
+    <input type="text" id="url" name="url" required style="width: 300px;" />
+    <button type="submit" class="btn">Generate Test Case</button>
   </form>
 
+  {% if error %}
+    <p class="error">{{ error }}</p>
+  {% endif %}
+
   {% if show_result %}
-    <form id="startForm">
-      <h3>Generated Test Case:</h3>
-      <textarea name="testcase_code" id="testcase_code">{{ testcase_code }}</textarea><br><br>
-      <button type="submit">Start</button>
+    <form id="testForm" method="POST" action="/start-test">
+      <label for="testcase_code">Generated Test Case:</label><br/>
+      <textarea name="testcase_code" readonly>{{ testcase_code }}</textarea><br/>
+      <button type="submit" class="btn">Run Test</button>
     </form>
-    <div id="status"></div>
+    <p id="loader" class="loader">Running test... Please wait.</p>
   {% endif %}
 
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const startForm = document.getElementById("startForm");
-      const statusDiv = document.getElementById("status");
+    const form = document.getElementById("testForm");
+    const loader = document.getElementById("loader");
 
-      if (startForm) {
-        startForm.addEventListener("submit", async function (e) {
-          e.preventDefault();
-          statusDiv.innerText = "Running test, please wait...";
+    if (form) {
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        loader.style.display = "block";
 
-          const testcaseCode = document.getElementById("testcase_code").value;
-
-          const response = await fetch("/start-test", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: new URLSearchParams({
-              testcase_code: testcaseCode,
-            }),
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            statusDiv.innerText = "Test completed. Redirecting to dashboard...";
-            window.location.href = `/dashboard?result_file=${data.result_file}`;
-          } else {
-            statusDiv.innerText = "An error occurred while running the test.";
-          }
+        const formData = new FormData(form);
+        const response = await fetch("/start-test", {
+          method: "POST",
+          body: formData
         });
-      }
-    });
+
+        const data = await response.json();
+        if (data.result_file) {
+          window.location.href = `/dashboard?result_file=${data.result_file}`;
+        } else {
+          loader.textContent = "Something went wrong.";
+        }
+      });
+    }
   </script>
 </body>
 </html>

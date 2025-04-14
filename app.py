@@ -25,10 +25,12 @@ def home():
 def generate_testcase_route():
     url = request.form.get("url")
 
+    # Validate URL format and accessibility
     is_valid, msg = validate_url(url)
     if not is_valid:
         return render_template("index.html", error=msg, show_result=False)
 
+    # Generate test case code using AI
     testcase_code = generate_testcase(url).strip("`python").strip("`").strip()
     session_data["url"] = url
     session_data["testcase_code"] = testcase_code
@@ -41,23 +43,27 @@ def start_test():
     url = session_data.get("url", "Unknown URL")
     start_time = time.time()
 
+    # Run the generated test case
     raw_output, script_filename = run_generated_testcase(code)
     end_time = time.time()
 
+    # Parse the result from the raw output of the test case
     parsed_result = parse_test_output(raw_output, start_time, end_time, url)
     result_filename = f"{parsed_result['filename']}.json"
     json_path = os.path.join("results", result_filename)
 
+    # Save the parsed result in JSON format
     with open(json_path, "w") as f:
         json.dump(parsed_result, f, indent=2)
 
+    # Generate a PDF report from the parsed result
     pdf_path = os.path.join("results", f"{parsed_result['filename']}.pdf")
     generate_pdf_report(parsed_result, pdf_path)
 
     session_data["latest_result"] = parsed_result
 
-    # 🔥 Return filename as JSON (used in index.html JavaScript to redirect)
-    return jsonify({"result_file": result_filename})
+    # Return dashboard URL to redirect via JS
+    return jsonify({"redirect_url": url_for("dashboard", result_file=result_filename)})
 
 @app.route("/dashboard")
 def dashboard():
@@ -75,12 +81,14 @@ def dashboard():
 @app.route("/download-report/<filename>")
 def download_report(filename):
     path = os.path.join("results", filename)
+
     if not os.path.exists(path):
         return "File not found", 404
+
     return open(path, "rb").read(), 200, {
         "Content-Type": "application/pdf",
         "Content-Disposition": f"attachment; filename={filename}"
     }
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)  # Disable auto-reload to avoid duplicate execution
