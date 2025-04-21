@@ -1,5 +1,6 @@
 import uuid
 import re
+from datetime import datetime
 
 def parse_test_output(raw_output, start_time, end_time, url):
     lines = raw_output.strip().split("\n")
@@ -28,7 +29,7 @@ def parse_test_output(raw_output, start_time, end_time, url):
     total = passed + failed + errors
     score = round((passed / total) * 100, 2) if total > 0 else 0
     status = "Passed" if failed == 0 and errors == 0 else "Failed"
-    runtime = end_time - start_time
+    runtime = round(end_time - start_time, 2)
     summary = f"Total: {total}, Passed: {passed}, Failed: {failed}, Errors: {errors}"
 
     return {
@@ -38,5 +39,10 @@ def parse_test_output(raw_output, start_time, end_time, url):
         "score": score,
         "runtime": runtime,
         "summary": summary,
-        "steps": steps
+        "steps": steps,
+        "start_time": datetime.fromtimestamp(start_time).strftime("%Y-%m-%d %H:%M:%S"),
+        "end_time": datetime.fromtimestamp(end_time).strftime("%Y-%m-%d %H:%M:%S"),
+        "passed": passed,
+        "failed": failed,
+        "errors": errors
     }

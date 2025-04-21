@@ -52,6 +52,28 @@
             max-width: 600px;
             margin: 30px auto;
         }
+        .status-pass {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .status-fail {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .status-error {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .status-info {
+            color: #6c757d;
+            font-weight: bold;
+        }
+        h2 {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
     </style>
 </head>
 <body>
@@ -83,7 +105,7 @@
             {% for step in result.steps %}
             <tr>
                 <td>{{ loop.index }}</td>
-                <td>{{ step.status }}</td>
+                <td class="status-{{ step.status }}">{{ step.status | capitalize }}</td>
                 <td>{{ step.description }}</td>
             </tr>
             {% endfor %}

@@ -6,52 +6,111 @@
   <title>Test Case Generator</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 30px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7f9;
+      margin: 0;
+      padding: 0;
     }
+
+    .container {
+      max-width: 800px;
+      margin: 50px auto;
+      background: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #444;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
     textarea {
       width: 100%;
       height: 300px;
-      margin-top: 10px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #f9f9f9;
+      resize: vertical;
     }
+
     .btn {
-      padding: 10px 20px;
-      margin: 10px 5px;
+      padding: 12px 25px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 8px;
       font-size: 16px;
       cursor: pointer;
+      transition: background 0.3s ease;
     }
+
+    .btn:hover {
+      background-color: #0056b3;
+    }
+
     .loader {
-      display: none;
       font-weight: bold;
-      color: green;
+      color: #28a745;
+      margin-top: 15px;
     }
+
     .error {
       color: red;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+
+    form {
+      margin-bottom: 30px;
     }
   </style>
 </head>
 <body>
 
-  <h1>AI-Based Test Case Generator</h1>
+  <div class="container">
+    <h1>AI-Based Test Case Generator</h1>
 
-  <form action="/generate-testcase" method="POST">
-    <label for="url">Enter Website URL:</label>
-    <input type="text" id="url" name="url" required style="width: 300px;" />
-    <button type="submit" class="btn">Generate Test Case</button>
-  </form>
-
-  {% if error %}
-    <p class="error">{{ error }}</p>
-  {% endif %}
-
-  {% if show_result %}
-    <form id="testForm" method="POST" action="/start-test">
-      <label for="testcase_code">Generated Test Case:</label><br/>
-      <textarea name="testcase_code" readonly>{{ testcase_code }}</textarea><br/>
-      <button type="submit" class="btn">Run Test</button>
+    <form action="/generate-testcase" method="POST">
+      <label for="url">Enter Website URL:</label>
+      <input type="text" id="url" name="url" required />
+      <button type="submit" class="btn">Generate Test Case</button>
     </form>
-    <p id="loader" class="loader">Running test... Please wait.</p>
-  {% endif %}
+
+    {% if error %}
+      <p class="error">{{ error }}</p>
+    {% endif %}
+
+    {% if show_result %}
+      <form id="testForm" method="POST" action="/start-test">
+        <label for="testcase_code">Generated Test Case:</label>
+        <textarea name="testcase_code" readonly>{{ testcase_code }}</textarea>
+        <br/>
+        <button type="submit" class="btn">Run Test</button>
+      </form>
+      <p id="loader" class="loader">Running test... Please wait.</p>
+    {% endif %}
+  </div>
 
   <script>
     const form = document.getElementById("testForm");
