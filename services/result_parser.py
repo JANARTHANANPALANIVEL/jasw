@@ -1,6 +1,7 @@
 import uuid
-import re
 from datetime import datetime
+import re
+
 
 def parse_test_output(raw_output, start_time, end_time, url):
     lines = raw_output.strip().split("\n")
@@ -39,10 +40,7 @@ def parse_test_output(raw_output, start_time, end_time, url):
         "score": score,
         "runtime": runtime,
         "summary": summary,
-        "steps": steps,
-        "start_time": datetime.fromtimestamp(start_time).strftime("%Y-%m-%d %H:%M:%S"),
+        "steps": steps
+         "start_time": datetime.fromtimestamp(start_time).strftime("%Y-%m-%d %H:%M:%S"),
         "end_time": datetime.fromtimestamp(end_time).strftime("%Y-%m-%d %H:%M:%S"),
-        "passed": passed,
-        "failed": failed,
-        "errors": errors
     }
