@@ -73,6 +73,7 @@
       font-weight: bold;
       color: #28a745;
       margin-top: 15px;
+      display: none;
     }
 
     .error {
@@ -92,8 +93,12 @@
     <h1>AI-Based Test Case Generator</h1>
 
     <form action="/generate-testcase" method="POST">
-      <label for="url">Enter Website URL:</label>
+      <label for="url"><span style="color:red">*</span> Enter Website URL:</label>
       <input type="text" id="url" name="url" required />
+
+      <label for="promti">Describe the test scenario (Prompt):</label>
+      <input type="text" id="promti" name="promti" placeholder="Enter your username, password, and the flow to test" />
+
       <button type="submit" class="btn">Generate Test Case</button>
     </form>
 
@@ -104,7 +109,7 @@
     {% if show_result %}
       <form id="testForm" method="POST" action="/start-test">
         <label for="testcase_code">Generated Test Case:</label>
-        <textarea name="testcase_code" readonly>{{ testcase_code }}</textarea>
+        <textarea name="testcase_code">{{ testcase_code }}</textarea>
         <br/>
         <button type="submit" class="btn">Run Test</button>
       </form>

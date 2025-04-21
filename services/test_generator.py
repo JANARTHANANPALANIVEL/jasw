@@ -3,7 +3,7 @@ from config import GEMINI_API_KEY
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-def generate_testcase(url):
+def generate_testcase(url,user_prompt):
     prompt = f"""
         You are an expert QA engineer. Generate a robust Selenium test script in Python to test the website: {url}.
 
@@ -20,6 +20,7 @@ def generate_testcase(url):
         - Total execution time,
         - Overall test score as a percentage,
         - A concise summary.
+        9. {user_prompt}
         
 
         Output only the complete and properly indented Python code. Do not include any explanations or extra text.

@@ -24,6 +24,7 @@ def home():
 @app.route("/generate-testcase", methods=["POST"])
 def generate_testcase_route():
     url = request.form.get("url")
+    user_prompt = request.form.get("promti")
 
     # Validate URL format and accessibility
     is_valid, msg = validate_url(url)
@@ -31,7 +32,7 @@ def generate_testcase_route():
         return render_template("index.html", error=msg, show_result=False)
 
     # Generate test case code using AI
-    testcase_code = generate_testcase(url).strip("`python").strip("`").strip()
+    testcase_code = generate_testcase(url,user_prompt).strip("`python").strip("`").strip()
     session_data["url"] = url
     session_data["testcase_code"] = testcase_code
 
