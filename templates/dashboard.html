@@ -4,93 +4,181 @@
     <meta charset="UTF-8">
     <title>JASW Test Dashboard</title>
     <style>
+        :root {
+            --primary-color: #2563eb;
+            --success-color: #22c55e;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #64748b;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background-color: #f5f5f5;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            padding: 2rem;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.5;
         }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--card-background);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
         h2 {
-            color: #333;
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
         }
+
         .summary {
-            margin-bottom: 20px;
-            background: #fff;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
+
+        .summary-card {
+            background: var(--card-background);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .summary-card strong {
+            display: block;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .chart-container {
+            background: var(--card-background);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
-            border-radius: 8px;
+            background: var(--card-background);
+            border-radius: 1rem;
             overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            margin: 2rem 0;
         }
+
         th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
+            padding: 1rem;
             text-align: left;
+            border-bottom: 1px solid var(--border-color);
         }
+
         th {
-            background-color: #007BFF;
+            background-color: var(--primary-color);
             color: white;
+            font-weight: 600;
         }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
         tr:nth-child(even) {
-            background-color: #f2f2f2;
+            background-color: #f8fafc;
         }
+
+        .status-pass { color: var(--success-color); }
+        .status-fail { color: var(--error-color); }
+        .status-error { color: var(--warning-color); }
+        .status-info { color: var(--info-color); }
+
         .btn-download {
             display: inline-block;
-            padding: 10px 20px;
-            background: #28a745;
+            padding: 0.75rem 1.5rem;
+            background: var(--success-color);
             color: white;
             text-decoration: none;
-            border-radius: 6px;
-            margin-top: 20px;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgb(34 197 94 / 0.2);
         }
-        .chart-container {
-            width: 100%;
-            max-width: 600px;
-            margin: 30px auto;
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(34 197 94 / 0.3);
         }
-        .status-pass {
-            color: #28a745;
-            font-weight: bold;
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
         }
-        .status-fail {
-            color: #dc3545;
-            font-weight: bold;
-        }
-        .status-error {
-            color: #ffc107;
-            font-weight: bold;
-        }
-        .status-info {
-            color: #6c757d;
-            font-weight: bold;
-        }
-        h2 {
-            font-size: 24px;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
     </style>
 </head>
 <body>
-
-    <h2>Test Summary for: {{ result.url }}</h2>
-
-    <div class="summary">
-        <p><strong>Start Time:</strong> {{ result.start_time }}</p>
-        <p><strong>End Time:</strong> {{ result.end_time }}</p>
-        <p><strong>Duration:</strong> {{ result.runtime }} seconds</p>
-        <p><strong>Overall Score:</strong> {{ result.score }}%</p>
-        <p><strong>Summary:</strong> {{ result.summary }}</p>
+    <div class="dashboard-header">
+        <h2>Test Summary for: {{ result.url }}</h2>
     </div>
 
-    <!-- Chart Section -->
-    <div class="chart-container">
-        <canvas id="testResultsChart"></canvas>
+    <div class="summary">
+        <div class="summary-card">
+            <strong>Start Time</strong>
+            <p>{{ result.start_time }}</p>
+        </div>
+        <div class="summary-card">
+            <strong>End Time</strong>
+            <p>{{ result.end_time }}</p>
+        </div>
+        <div class="summary-card">
+            <strong>Duration</strong>
+            <p>{{ result.runtime }} seconds</p>
+        </div>
+        <div class="summary-card">
+            <strong>Overall Score</strong>
+            <p>{{ result.score }}%</p>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-container">
+            <canvas id="testResultsChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="performanceChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="timelineChart"></canvas>
+        </div>
     </div>
 
     <table>
@@ -114,43 +202,103 @@
 
     <a class="btn-download" href="/download-report/{{ result.filename }}.pdf">Download PDF Report</a>
 
-    <!-- Chart.js Script -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Extract pass, fail, and error counts from the result data
+        // Test Results Pie Chart
         const passed = {{ result.passed }};
         const failed = {{ result.failed }};
         const errors = {{ result.errors }};
 
-        // Create the chart
-        const ctx = document.getElementById('testResultsChart').getContext('2d');
-        const testResultsChart = new Chart(ctx, {
-            type: 'pie',
+        new Chart(document.getElementById('testResultsChart').getContext('2d'), {
+            type: 'doughnut',
             data: {
                 labels: ['Passed', 'Failed', 'Errors'],
                 datasets: [{
                     data: [passed, failed, errors],
-                    backgroundColor: ['#28a745', '#dc3545', '#ffc107'],
-                    hoverBackgroundColor: ['#218838', '#c82333', '#e0a800']
+                    backgroundColor: ['#22c55e', '#ef4444', '#f59e0b'],
+                    borderWidth: 0
                 }]
             },
             options: {
                 responsive: true,
                 plugins: {
                     legend: {
-                        position: 'top',
+                        position: 'bottom'
                     },
-                    tooltip: {
-                        callbacks: {
-                            label: function(tooltipItem) {
-                                return tooltipItem.label + ': ' + tooltipItem.raw + ' steps';
-                            }
+                    title: {
+                        display: true,
+                        text: 'Test Results Distribution'
+                    }
+                }
+            }
+        });
+
+        // Performance Chart
+        new Chart(document.getElementById('performanceChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Load Time', 'Processing', 'Assertions', 'Cleanup'],
+                datasets: [{
+                    label: 'Time (seconds)',
+                    data: [
+                        {{ result.load_time|default(0) }},
+                        {{ result.processing_time|default(0) }},
+                        {{ result.assertion_time|default(0) }},
+                        {{ result.cleanup_time|default(0) }}
+                    ],
+                    backgroundColor: '#2563eb'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Performance Metrics'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Timeline Chart
+        new Chart(document.getElementById('timelineChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: Array.from({ length: {{ result.steps|length }} }, (_, i) => `Step ${i + 1}`),
+                datasets: [{
+                    label: 'Step Duration',
+                    data: {{ result.step_durations|default('[]')|safe }},
+                    borderColor: '#2563eb',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Test Execution Timeline'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Duration (ms)'
                         }
                     }
                 }
             }
         });
     </script>
-
 </body>
 </html>

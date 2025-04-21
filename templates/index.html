@@ -1,145 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Test Case Generator</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f7f9;
-      margin: 0;
-      padding: 0;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Test Case Generator</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5f7fa;
+            --text-color: #2c3e50;
+            --border-color: #e1e8ed;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+        }
 
-    .container {
-      max-width: 800px;
-      margin: 50px auto;
-      background: #fff;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    h1 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 30px;
-    }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
 
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: #444;
-    }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
 
-    input[type="text"] {
-      width: 100%;
-      padding: 10px 15px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
-      margin-bottom: 20px;
-    }
+        h1 {
+            text-align: center;
+            color: var(--text-color);
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(120deg, var(--primary-color), #34495e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-    textarea {
-      width: 100%;
-      height: 300px;
-      padding: 15px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 14px;
-      background: #f9f9f9;
-      resize: vertical;
-    }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
 
-    .btn {
-      padding: 12px 25px;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
+        label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
 
-    .btn:hover {
-      background-color: #0056b3;
-    }
+        label span.required {
+            color: var(--error-color);
+            margin-left: 4px;
+        }
 
-    .loader {
-      font-weight: bold;
-      color: #28a745;
-      margin-top: 15px;
-      display: none;
-    }
+        input[type="text"] {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--secondary-color);
+        }
 
-    .error {
-      color: red;
-      font-weight: 500;
-      margin-top: 10px;
-    }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
 
-    form {
-      margin-bottom: 30px;
-    }
-  </style>
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'Monaco', 'Consolas', monospace;
+            background: var(--secondary-color);
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #357abd;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .error {
+            color: var(--error-color);
+            font-weight: 500;
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: rgba(231, 76, 60, 0.1);
+        }
+
+        .loader {
+            color: var(--success-color);
+            font-weight: 600;
+            margin-top: 1rem;
+            text-align: center;
+            display: none;
+        }
+
+        .loader::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            border: 3px solid var(--success-color);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .container {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h1>AI-Based Test Case Generator</h1>
 
-  <div class="container">
-    <h1>AI-Based Test Case Generator</h1>
+        <form action="/generate-testcase" method="POST">
+            <div class="form-group">
+                <label for="url">Website URL<span class="required">*</span></label>
+                <input type="text" id="url" name="url" required placeholder="https://example.com" />
+            </div>
 
-    <form action="/generate-testcase" method="POST">
-      <label for="url"><span style="color:red">*</span> Enter Website URL:</label>
-      <input type="text" id="url" name="url" required />
+            <div class="form-group">
+                <label for="promti">Test Scenario Description</label>
+                <input type="text" id="promti" name="promti" 
+                    placeholder="Describe the test flow (e.g., login process, form submission)" />
+            </div>
 
-      <label for="promti">Describe the test scenario (Prompt):</label>
-      <input type="text" id="promti" name="promti" placeholder="Enter your username, password, and the flow to test" />
+            <button type="submit" class="btn">Generate Test Case</button>
+        </form>
 
-      <button type="submit" class="btn">Generate Test Case</button>
-    </form>
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
 
-    {% if error %}
-      <p class="error">{{ error }}</p>
-    {% endif %}
+        {% if show_result %}
+            <form id="testForm" method="POST" action="/start-test" class="form-group">
+                <label for="testcase_code">Generated Test Case</label>
+                <textarea name="testcase_code" id="testcase_code">{{ testcase_code }}</textarea>
+                <button type="submit" class="btn">Run Test</button>
+            </form>
+            <div id="loader" class="loader">Running test...</div>
+        {% endif %}
+    </div>
 
-    {% if show_result %}
-      <form id="testForm" method="POST" action="/start-test">
-        <label for="testcase_code">Generated Test Case:</label>
-        <textarea name="testcase_code">{{ testcase_code }}</textarea>
-        <br/>
-        <button type="submit" class="btn">Run Test</button>
-      </form>
-      <p id="loader" class="loader">Running test... Please wait.</p>
-    {% endif %}
-  </div>
+    <script>
+        const form = document.getElementById("testForm");
+        const loader = document.getElementById("loader");
 
-  <script>
-    const form = document.getElementById("testForm");
-    const loader = document.getElementById("loader");
+        if (form) {
+            form.addEventListener("submit", async function (e) {
+                e.preventDefault();
+                loader.style.display = "block";
 
-    if (form) {
-      form.addEventListener("submit", async function (e) {
-        e.preventDefault();
-        loader.style.display = "block";
+                try {
+                    const formData = new FormData(form);
+                    const response = await fetch("/start-test", {
+                        method: "POST",
+                        body: formData
+                    });
 
-        const formData = new FormData(form);
-        const response = await fetch("/start-test", {
-          method: "POST",
-          body: formData
-        });
-
-        const data = await response.json();
-        if (data.redirect_url) {
-          window.location.href = data.redirect_url;
-        } else {
-          loader.textContent = "Something went wrong.";
+                    const data = await response.json();
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        loader.textContent = "Something went wrong. Please try again.";
+                        loader.style.color = "var(--error-color)";
+                    }
+                } catch (error) {
+                    loader.textContent = "An error occurred. Please try again.";
+                    loader.style.color = "var(--error-color)";
+                }
+            });
         }
-      });
-    }
-  </script>
+    </script>
 </body>
 </html>

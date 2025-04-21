@@ -41,6 +41,6 @@ def parse_test_output(raw_output, start_time, end_time, url):
         "runtime": runtime,
         "summary": summary,
         "steps": steps,
-        "start_time":datetime.fromtimestamp(start_time).strftime("%y-%m-%d %H%M%S"),
+        "start_time":datetime.fromtimestamp(start_time).strftime("%y-%m-%d %H:%M:%S"),
         "end_time": datetime.fromtimestamp(end_time).strftime("%Y-%m-%d %H:%M:%S"),
     }
