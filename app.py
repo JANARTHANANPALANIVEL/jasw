@@ -1,101 +1,96 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 import os
-import time
 import json
-
-from services.test_generator import generate_testcase
-from services.test_runner import run_generated_testcase
-from services.result_parser import parse_test_output
-from utils.url_validator import validate_url
+import uuid
+from services.test_generator import generate_test_case
+from services.test_runner import run_test
+from services.result_parser import parse_results
 from services.report_generator import generate_pdf_report
 
 app = Flask(__name__)
-app.secret_key = "jasw-secret"
 
-os.makedirs("results", exist_ok=True)
+RESULTS_DIR = 'results'
+TEST_FILE = 'test_file/generated_test.py'
 
-# Store session-wise data temporarily
-session_data = {}
+os.makedirs(RESULTS_DIR, exist_ok=True)
+os.makedirs('test_file', exist_ok=True)
 
-@app.route("/", methods=["GET"])
-def home():
-    return render_template("index.html", testcase_code="", show_result=False)
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-@app.route("/generate-testcase", methods=["POST"])
-def generate_testcase_route():
-    url = request.form.get("url")
-    user_prompt = request.form.get("promti")
+@app.route('/generate-testcase', methods=['POST'])
+def generate_testcase():
+    data = request.json
+    test_id = str(uuid.uuid4())
+    test_case = generate_test_case(
+        data['url'],
+        data['websiteType'],
+        data.get('customPrompt', '')
+    )
+    
+    # Save the generated test case with UUID
+    test_file_path = f'test_file/test_{test_id}.py'
+    with open(test_file_path, 'w') as f:
+        f.write(test_case)
+    
+    return jsonify({'testCase': test_case, 'testId': test_id})
 
-    # Validate URL format and accessibility
-    is_valid, msg = validate_url(url)
-    if not is_valid:
-        return render_template("index.html", error=msg, show_result=False)
+@app.route('/update-testcase', methods=['POST'])
+def update_testcase():
+    data = request.json
+    test_id = data.get('testId')
+    test_file_path = f'test_file/test_{test_id}.py'
+    
+    with open(test_file_path, 'w') as f:
+        f.write(data['code'])
+    return jsonify({'status': 'success'})
 
-    # Generate test case code using AI
-    testcase_code = generate_testcase(url,user_prompt).strip("`python").strip("`").strip()
-    session_data["url"] = url
-    session_data["testcase_code"] = testcase_code
+@app.route('/execute-test', methods=['POST'])
+def execute_test():
+    data = request.json
+    test_id = data.get('testId')
+    test_file_path = f'test_file/test_{test_id}.py'
+    
+    test_output = run_test(test_file_path)
+    results = parse_results(test_output)
+    
+    # Save results with UUID
+    results_file = f'results/results_{test_id}.json'
+    with open(results_file, 'w') as f:
+        json.dump(results, f)
+    
+    # Generate PDF automatically
+    pdf_path = generate_pdf_report(results, test_id)
+    
+    return jsonify({
+        'status': 'success',
+        'testId': test_id,
+        'pdfPath': pdf_path
+    })
 
-    return render_template("index.html", testcase_code=testcase_code, show_result=True)
+@app.route('/dashboard/<test_id>')
+def dashboard(test_id):
+    results_file = f'results/results_{test_id}.json'
+    with open(results_file, 'r') as f:
+        results = json.load(f)
+    
+    return render_template('dashboard.html',
+        test_id=test_id,
+        total_steps=results['total_steps'],
+        passed_steps=results['passed_steps'],
+        failed_steps=results['failed_steps'],
+        error_steps=results['error_steps'],
+        duration=results['duration'],
+        test_steps=results['steps'],
+        step_numbers=[step['number'] for step in results['steps']],
+        step_durations=[step['duration'] for step in results['steps']]
+    )
 
-@app.route("/start-test", methods=["POST"])
-def start_test():
-    code = request.form.get("testcase_code")
-    url = session_data.get("url", "Unknown URL")
-    start_time = time.time()
+@app.route('/download-report/<test_id>')
+def download_report(test_id):
+    pdf_path = f'results/report_{test_id}.pdf'
+    return send_file(pdf_path, as_attachment=True)
 
-    # Run the generated test case
-    raw_output, script_filename = run_generated_testcase(code)
-    end_time = time.time()
-
-    # Parse the result from the raw output of the test case
-    parsed_result = parse_test_output(raw_output, start_time, end_time, url)
-    result_filename = f"{parsed_result['filename']}.json"
-    json_path = os.path.join("results", result_filename)
-
-    # Save the parsed result in JSON format
-    with open(json_path, "w") as f:
-        json.dump(parsed_result, f, indent=2)
-
-    # Generate a PDF report from the parsed result
-    pdf_path = os.path.join("results", f"{parsed_result['filename']}.pdf")
-    generate_pdf_report(parsed_result, pdf_path)
-
-    session_data["latest_result"] = parsed_result
-
-    # Return dashboard URL to redirect via JS
-    return jsonify({"redirect_url": url_for("dashboard", result_file=result_filename)})
-
-@app.route("/dashboard")
-def dashboard():
-    result_file = request.args.get("result_file")
-    filepath = os.path.join("results", result_file)
-
-    if not os.path.exists(filepath):
-        return "Result not found", 404
-
-    with open(filepath, "r") as f:
-        result = json.load(f)
-
-    # Calculate pass, fail, and error counts
-    passed = sum(1 for step in result['steps'] if step['status'] == 'pass')
-    failed = sum(1 for step in result['steps'] if step['status'] == 'fail')
-    errors = sum(1 for step in result['steps'] if step['status'] == 'error')
-
-    # Add the pass, fail, and error counts to the result object
-    return render_template("dashboard.html", result=result, passed=passed, failed=failed, errors=errors)
-
-@app.route("/download-report/<filename>")
-def download_report(filename):
-    path = os.path.join("results", filename)
-
-    if not os.path.exists(path):
-        return "File not found", 404
-
-    return open(path, "rb").read(), 200, {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": f"attachment; filename={filename}"
-    }
-
-if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)  # Disable auto-reload to avoid duplicate execution
+if __name__ == '__main__':
+    app.run(debug=True)
