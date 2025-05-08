@@ -16,12 +16,10 @@ def parse_results(test_output):
                 'number': current_step,
                 'description': line.strip(),
                 'status': status,
-                'duration': round(
-                    float(re.search(r'(\d+\.\d+)s', line).group(1))
-                    if re.search(r'(\d+\.\d+)s', line) 
-                    else 0.0,
-                    2
-                ),
+                'duration': float(f"{float(re.search(r'(\d+\.\d+)s', line).group(1)):.4f}")
+                if re.search(r'(\d+\.\d+)s', line) 
+                else 0.0000
+                ,
                 'timestamp': datetime.now().isoformat()
             })
             current_step += 1
@@ -58,12 +56,10 @@ def parse_results(test_output):
                 'number': current_step,
                 'description': line.strip(),
                 'status': status,
-                'duration': round(
-                    float(re.search(r'(\d+\.\d+)s', line).group(1))
-                    if re.search(r'(\d+\.\d+)s', line) 
-                    else 0.0,
-                    2
-                ),
+                'duration': float(f"{float(re.search(r'(\d+\.\d+)s', line).group(1)):.4f}")
+                if re.search(r'(\d+\.\d+)s', line) 
+                else 0.0000
+                ,
                 'timestamp': datetime.now().isoformat()
             })
             current_step += 1

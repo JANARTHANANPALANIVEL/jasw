@@ -38,6 +38,7 @@ def get_prompt_template(website_type):
                 * PASS/FAIL/ERROR status
                 * Error message (if any)
                 * Execution time in seconds (per step)
+                
 
             12. After all tests, print a final report including:
 
@@ -45,6 +46,7 @@ def get_prompt_template(website_type):
                 * Number of passes, failures, and errors
                 * Total execution time in secound
                 * Overall test score as a percentage
+                *duration of the step in seconds
 
             Output only the complete and properly indented Python code. Do not include any explanations or extra commentary.
 
@@ -84,6 +86,7 @@ def get_prompt_template(website_type):
                 * Number of passes, failures, and errors
                 * Total execution time in secound
                 * Overall test score as a percentage
+                *duration of the step in seconds
 
             Output only the complete and properly indented Python code. Do not include any explanations or extra commentary.
         """,
@@ -121,6 +124,7 @@ def get_prompt_template(website_type):
                 * Number of passes, failures, and errors
                 * Total execution time in secound
                 * Overall test score as a percentage
+                *duration of the step in seconds
 
             Output only the complete and properly indented Python code. Do not include any explanations or extra commentary.
 
@@ -152,6 +156,7 @@ def get_prompt_template(website_type):
                 * PASS/FAIL/ERROR status
                 * Error message (if any)
                 * Execution time in seconds (per step)
+                
 
             12. After all tests, print a final report including:
 
@@ -159,6 +164,7 @@ def get_prompt_template(website_type):
                 * Number of passes, failures, and errors
                 * Total execution time in secound
                 * Overall test score as a percentage
+                *duration of the step in seconds
 
             Output only the complete and properly indented Python code. Do not include any explanations or extra commentary.
 
